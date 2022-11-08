@@ -19,7 +19,7 @@
 ### PACKAGES
 suppressPackageStartupMessages({
   if (!require("pacman")) install.packages("pacman")
-  pacman::p_load("here", "dplyr", "tibble", "INLA", "hydroGOF", 
+  pacman::p_load("dplyr", "tibble", "INLA", "hydroGOF", 
                  "svMisc", "scoringutils", "pROC", "verification")
 })
 
@@ -214,9 +214,9 @@ fit.models <- function(data,
   #   ii) a list with the fitted values, where indexes match model IDs in i),
   #   iii) a list with the fixed effects, where indexes match model IDs in i),
   #   iv) and a list with the random effects,where indexes match model IDs in i)
-  saveRDS(temp, here("model_out", paste0(fileName, ".rds")))
-  print(paste("Saved prediction outputs as a R serialized object in", 
-              here("model_out", paste0(fileName, ".rds"))))
+  saveRDS(temp, paste0("model_out/", paste0(fileName, ".rds")))
+  print(paste0("Saved prediction outputs as a R serialized object in model_out/", 
+              paste0(fileName, ".rds")))
   
   ### END OF FUNCTION
 }
@@ -443,7 +443,7 @@ pred.models <- function(data,
     temp[["verif.stats"]] <- temp[["verif.stats"]] %>% 
       bind_rows(add4)
     
-    saveRDS(temp, here("model_out", paste0(fileName, "_", j, ".rds")))
+    saveRDS(temp, paste0("model_out/", paste0(fileName, "_", j, ".rds")))
     
     print(paste0("Model ", j, " of ", length(forms)))
     
@@ -458,10 +458,10 @@ pred.models <- function(data,
   #   vi) a data frame with the verification statistics, where indexes match model IDs
   # in 1.i)
   
-  saveRDS(temp, here("model_out", paste0(fileName, ".rds")))
+  saveRDS(temp, paste0("model_out/", paste0(fileName, ".rds")))
     
-  print(paste("Saved prediction outputs as a R serialized object in", 
-              here("model_out", paste0(fileName, ".rds"))))
+  print(paste0("Saved prediction outputs as a R serialized object in model_out/", 
+              paste0(fileName, ".rds")))
   
   ### END OF FUNCTION
 }

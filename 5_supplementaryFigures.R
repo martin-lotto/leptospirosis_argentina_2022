@@ -41,13 +41,13 @@ df.er <- data.lepto %>% filter(prov == "Entre Ríos") %>%
 df.sf <- data.lepto %>% filter(prov == "Santa Fe") %>% 
   mutate(across(.cols=c(7:35), ~(.x-mean(.x))/sd(.x)))
 
-er.enso.fit <- readRDS(here("model_out", "er_enso_fit.rds"))
-er.clim.fit <- readRDS(here("model_out", "er_clim_fit.rds"))
-sf.enso.fit <- readRDS(here("model_out", "sf_enso_fit.rds"))
-sf.clim.fit <- readRDS(here("model_out", "sf_clim_fit.rds"))
-er.preds <- readRDS(here("model_out", "er_preds.rds"))
-sf.preds <- readRDS(here("model_out", "sf_preds.rds"))
-
+er.enso.fit <- readRDS("model_out/er_enso_fit.rds")
+er.clim.fit <- readRDS("model_out/er_clim_fit.rds")
+sf.enso.fit <- readRDS("model_out/sf_enso_fit.rds")
+sf.clim.fit <- readRDS("model_out/sf_clim_fit.rds")
+er.preds <- readRDS("model_out/er_preds.rds")
+sf.preds <- readRDS("model_out/sf_preds.rds")
+#####
 
 ################################################################################
 ## SUPPLEMENTARY TEXT
@@ -151,8 +151,7 @@ new_scale <- function(new_aes) {
 }
 
 # Testing creating a plot with above or below 0.5/ -0.5 darker than the rest
-#p3 <- 
-dt %>%
+p3 <- dt %>%
   ggplot(aes(x=date)) +
   geom_hline(yintercept=0, col="grey", linetype="dashed") +
   geom_hline(yintercept=c(0.5, -0.5), linetype="dashed", col="grey") +

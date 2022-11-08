@@ -15,8 +15,8 @@
 ## License: 
 ##
 ## ############################################################################
-pacman::p_load("ggthemes", "tidyverse", "here", 
-               "zoo", "sf", "ggspatial", "pROC")
+pacman::p_load("ggthemes", "tidyverse", "zoo", 
+               "sf", "ggspatial", "pROC")
 
 ################################################################################
 ## DATA
@@ -121,7 +121,7 @@ fig2a <- cowplot::ggdraw(p2) +
                      width=0.3,
                      height=0.3)
 
-ggsave(plot=fig2a, filename=here("figures", "figure2a.pdf"), width=7, height=6)
+ggsave(plot=fig2a, filename="figures/figure2a.pdf", width=7, height=6)
 
 # Figure 2b: time series ####
 fig2b <- data.lepto %>% 
@@ -144,13 +144,13 @@ fig2b <- data.lepto %>%
         strip.text=element_text(size=12, face="italic"),
         plot.margin=unit(c(1,1,0,0), "cm"))
 
-ggsave(plot=fig2b, filename=here("figures", "figure2b.pdf"), width=18, height=6)
+ggsave(plot=fig2b, filename="figures/figure2b.pdf", width=18, height=6)
 
 # Combine figure 1a with figure 1b
 fig2 <- cowplot::plot_grid(fig2a, NULL, fig2b, rel_widths=c(0.5,0.1,1), 
                            nrow=1, labels=c("a.", "b."))
 
-ggsave(plot=fig2, filename=here("figures", "figure2.pdf"), width=18, height=6)
+ggsave(plot=fig2, filename="figures/figure2.pdf", width=18, height=6)
 
 # Figure 3: observed versus fitted ####
 er <- er.enso.fit$fits[[2]] %>% 
@@ -218,7 +218,7 @@ leg <- cowplot::get_legend(er+geom_line(data=df.er, aes(date, cases),
 
 fig3 <- cowplot::plot_grid(er, sf, nrow=2, labels=c("a", "b"))
 
-ggsave(plot=fig3, filename=here("figures", "figure3.pdf"), width=18, height=10)
+ggsave(plot=fig3, filename="figures/figure3.pdf", width=18, height=10)
 
 # Figure 4: ROC curves ####
 trig.er <- bind_rows(er.preds$trigger) %>% 
@@ -255,7 +255,7 @@ leg <- cowplot::get_legend(sf+theme(legend.position="bottom", legend.direction="
 
 up <- cowplot::plot_grid(er, sf, nrow=1, labels=c("a.", "b."))
 fig4 <- cowplot::plot_grid(up, leg, nrow=2, rel_heights=c(1,0.1))
-ggsave(plot=fig4, filename=here("figures", "figure4.pdf"), width=8, height=4)
+ggsave(plot=fig4, filename="figures/figure4.pdf", width=8, height=4)
 
 # Figure 5: Outbreak in 2010 ####
 # Compute outbreak probability for the period of interest
@@ -325,7 +325,7 @@ pt1 <- plot.out("ENSO", "84%", 53)
 pt2 <- plot.out("Local climate", "89%", 68)
 
 fig5 <- cowplot::plot_grid(pt1, pt2, labels=c("a.", "b."))
-ggsave(plot=fig5, filename=here("figures", "figure5.pdf"), width=18, height=10)
+ggsave(plot=fig5, filename="figures/figure5.pdf", width=18, height=10)
 
 # Table 1: goodness of fit statistics ####
 er.enso.fit$gof %>% slice(1,2,6) %>% dplyr::select(form, dic, rsq.re, rsq.null)
