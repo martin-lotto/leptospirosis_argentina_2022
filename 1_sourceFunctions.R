@@ -1,9 +1,20 @@
-################################################################################
-## 1- FUNCTIONS FOR RUNNING MODELS (Lotto-Rees et al., 2022)
+## ############################################################################
 ##
-## Author: Martin Lotto Batista
-## Year: 2022
-################################################################################
+## Towards a Leptospirosis Early Warning System in North-Eastern Argentina
+## Lotto Batista, M, Rees E., et al., 2022
+##
+## SCRIPT 01: Create functions for running models
+##
+## ############################################################################
+##
+## Script author: 
+## - Martín Lotto Batista, ORCID: 0000-0002-9437-5270
+##
+## Contact: martin.lotto@bsc.es
+## 
+## License: 
+##
+## ############################################################################
 
 ### PACKAGES
 suppressPackageStartupMessages({
@@ -20,8 +31,8 @@ fit.models <- function(data,
                        fileName=""){
   
   ### CREATE FORMULA ####
-  # Note: if the arguments were left empty, then the output will be just an empty
-  # string with random effects
+  # Note: if the arguments were left empty, then there will only be a random
+  # effects model
   forms <- expand.grid(var1, var2, var3, var4) %>%
     mutate(form=paste0(Var1, Var2, Var3, Var4))
   
@@ -48,7 +59,8 @@ fit.models <- function(data,
     xx <- inla.posterior.sample(s, mod)
     
     # Extract values of interest from the posterior sample
-    xx.s <- inla.posterior.sample.eval(function(...) c(theta[1], Predictor[1:144]),
+    xx.s <- inla.posterior.sample.eval(function(...) c(theta[1], 
+                                                       Predictor[1:144]),
                                        xx)
     
     # Create posterior predictive sample
@@ -74,7 +86,9 @@ fit.models <- function(data,
   # 4. Calculate MAE
   mod.mae <- function(mod, type=NA){
     # Type argument specifies mean or median ('0.5quant')
-    hydroGOF::mae(mod[["summary.fitted.values"]][[type]], data[["cases"]], na.rm=TRUE)
+    hydroGOF::mae(mod[["summary.fitted.values"]][[type]], 
+                  data[["cases"]], 
+                  na.rm=TRUE)
   }
   
   # 5. Calculate R2
@@ -144,9 +158,12 @@ fit.models <- function(data,
   # Note: this model is outside the loop because it's used as reference later
   null.mod <- run.mod("cases~1")
   
-  temp$fits[[1]] <- null.mod$summary.fitted.values %>% mutate(mod=1) # Fitted values
-  temp$params[[1]] <- w.params(null.mod$summary.fixed, 1) # Fixed effects
-  temp$random[[1]] <- lapply(null.mod$summary.random, mutate, mod=1) # Random effects
+  # Fitted values
+  temp$fits[[1]] <- null.mod$summary.fitted.values %>% mutate(mod=1) 
+  # Fixed effects
+  temp$params[[1]] <- w.params(null.mod$summary.fixed, 1) 
+  # Random effects
+  temp$random[[1]] <- lapply(null.mod$summary.random, mutate, mod=1) 
   
   # Calculate MAE
   mean.null.fit <- mod.mae(null.mod, type="mean")
@@ -198,7 +215,8 @@ fit.models <- function(data,
   #   iii) a list with the fixed effects, where indexes match model IDs in i),
   #   iv) and a list with the random effects,where indexes match model IDs in i)
   saveRDS(temp, here("model_out", paste0(fileName, ".rds")))
-  print(paste("Saved prediction outputs as a R serialized object in", here("model_out", paste0(fileName, ".rds"))))
+  print(paste("Saved prediction outputs as a R serialized object in", 
+              here("model_out", paste0(fileName, ".rds"))))
   
   ### END OF FUNCTION
 }
@@ -242,7 +260,8 @@ pred.models <- function(data,
     for(j in 1:12){ # For each year
       for(m in 1:12){ # For each month
         add.month <- data %>%
-          mutate(thresh=quantile(data$cases[(data$ID.year != j) & (data$month==m)], t),
+          mutate(thresh=quantile(data$cases[(data$ID.year != j) & (data$month==m)], 
+                                 t),
                  thresh=ifelse(thresh<floor, floor, thresh)) %>%
           filter(ID.year==j, month==m)
         
@@ -258,10 +277,13 @@ pred.models <- function(data,
     }
     
     out <- out %>%
-      mutate(outbreak=ifelse(cases > thresh, 1, 0)) %>% # Outbreak=1, No outbreak=0
-      mutate(outb=ifelse(outbreak==1, "x", NA), # Create variable with "x" to use in plots
+      # Outbreak=1, No outbreak=0
+      mutate(outbreak=ifelse(cases > thresh, 1, 0)) %>% 
+      # Create variable with "x" to use in plots
+      mutate(outb=ifelse(outbreak==1, "x", NA), 
              br.score=(prob.out-outbreak)^2) %>% # Compute Brier score
-      dplyr::select(1:6, contains(c("thresh","prob.out","outbreak","outb","br.score")))
+      dplyr::select(1:6, contains(c("thresh","prob.out","outbreak",
+                                    "outb","br.score")))
     
     return(out)
   }
@@ -306,8 +328,12 @@ pred.models <- function(data,
                         # convert cases and ID.year to NA
                         # month 1: target month minus de lag
                         # month 12: target month minus the lag, plus 12
-                        cases=ifelse(ID.month>=i-l & ID.month<=i-l+11, NA, cases), 
-                        ID.year=ifelse(ID.month>=i-l & ID.month<=i-l+11, NA, ID.year))
+                        cases=ifelse(ID.month>=i-l & ID.month<=i-l+11, 
+                                     NA, 
+                                     cases), 
+                        ID.year=ifelse(ID.month>=i-l & ID.month<=i-l+11, 
+                                       NA, 
+                                       ID.year))
       # Extract identifiers for NA values
       idx.pred <- which(data$ID.month>=i-l & data$ID.month<=i-l+11)
       # Number of rows to predict
@@ -317,9 +343,11 @@ pred.models <- function(data,
       mod <- run.mod(paste0("cases ~ 1", res, form))
       
       # Extract samples
+      # extract overdispersion parameter
       xx <- inla.posterior.sample(s, mod, selection=list(Predictor=i))
-      xx.s <- inla.posterior.sample.eval(function(...) c(theta[1], # extract overdispersion parameter 
-                                                         Predictor[1]), # extract predicted values of interest
+      # extract predicted values of interest
+      xx.s <- inla.posterior.sample.eval(function(...) c(theta[1], 
+                                                         Predictor[1]),
                                          xx) # from this sample of the posterior
       
       # Compute the posterior predictive distribution for each of the 
@@ -328,9 +356,9 @@ pred.models <- function(data,
       y.pred <- matrix(NA, mpred, s)
       for(s.idx in 1:s) {
         xx.sample <- xx.s[, s.idx]
-        y.pred[, s.idx] <- rnbinom(mpred, # number of random numbers
-                                   mu=exp(xx.sample[-1]), # mean
-                                   size=xx.sample[1]) # Size is the overdispersion parameter in this context
+        y.pred[, s.idx] <- rnbinom(mpred,
+                                   mu=exp(xx.sample[-1]),
+                                   size=xx.sample[1]) 
       }
       
       # Because l can be 0, R has to extract the target month correctly as 1
@@ -373,7 +401,8 @@ pred.models <- function(data,
     
     add3 <- data.frame(model=j,
                        trigger=temp[["trigger"]][[j]][[1]],
-                       condition=c("Hit", "Correct rejection", "False alarm", "Missed event"),
+                       condition=c("Hit", "Correct rejection", 
+                                   "False alarm", "Missed event"),
                        # Calculate hit rate
                        value=c(length(add2$trigger[add2$trigger==1 & add2$outbreak==1]), 
                                # Calculate correct rejection
@@ -383,9 +412,11 @@ pred.models <- function(data,
                                # Calculate missed outbreaks
                                length(add2$trigger[add2$trigger==0 & add2$outbreak==1])), 
                        # Calculate true positive rate
-                       tp=length(add2$trigger[add2$trigger==1 & add2$outbreak==1])/ length(add2$outbreak[add2$outbreak==1]), 
+                       tp=length(add2$trigger[add2$trigger==1 & add2$outbreak==1])/ 
+                         length(add2$outbreak[add2$outbreak==1]), 
                        # Calculate true negative rate
-                       tn=length(add2$trigger[add2$trigger==0 & add2$outbreak==0])/ length(add2$outbreak[add2$outbreak==0]), 
+                       tn=length(add2$trigger[add2$trigger==0 & add2$outbreak==0])/ 
+                         length(add2$outbreak[add2$outbreak==0]), 
                        # Incorporate AUC values with 95% CI
                        auc=temp[["auc"]][[j]]$auc,
                        lower=temp[["auc"]][[j]]$lower,
@@ -424,12 +455,17 @@ pred.models <- function(data,
   #   iii) a list with the CRPS values, where indexes match model IDs in 1.i)
   #   iv) a list with the outbreak trigger values, where indexes match model IDs in 1.i)
   #   v) a data frame with the sensitivity values, where indexes match model IDs in 1.i)
-  #   vi) a data frame with the verification statistics, where indexes match model IDs in 1.i)
+  #   vi) a data frame with the verification statistics, where indexes match model IDs
+  # in 1.i)
   
   saveRDS(temp, here("model_out", paste0(fileName, ".rds")))
     
-  print(paste("Saved prediction outputs as a R serialized object in", here("model_out", paste0(fileName, ".rds"))))
+  print(paste("Saved prediction outputs as a R serialized object in", 
+              here("model_out", paste0(fileName, ".rds"))))
   
   ### END OF FUNCTION
 }
 
+## ############################################################################
+## END
+## ############################################################################

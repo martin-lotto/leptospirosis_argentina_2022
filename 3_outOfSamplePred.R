@@ -1,18 +1,28 @@
-################################################################################
-## 4- RUN PREDICTIONS (Lotto-Rees et al., 2022)
+## ############################################################################
 ##
-## Author: Martin Lotto Batista
-## Year: 2022
-################################################################################
+## Towards a Leptospirosis Early Warning System in North-Eastern Argentina
+## Lotto Batista, M, Rees E., et al., 2022
+##
+## SCRIPT 03: Compute out of sample predictions
+##
+## ############################################################################
+##
+## Script author: 
+## - Martín Lotto Batista, ORCID: 0000-0002-9437-5270
+##
+## Contact: martin.lotto@bsc.es
+## 
+## License: 
+##
+## ############################################################################
 source("1_functions.R")
 
 # Prepare data
-df.lepto <- readRDS(here("data_use", "prov_cases.rds"))
-pop <- readRDS(here("data_use", "pop.rds"))
-prcp <- readRDS(here("data_use", "prcp.rds"))
-riv <- readRDS(here("data_use", "river_height.rds"))
-sal <- readRDS(here("data_use", "salado.rds"))
-nino <- readRDS(here("data_use", "nino.rds"))
+df.lepto <- readRDS("data_use/prov_cases.rds")
+pop <- readRDS("data_use/pop.rds")
+prcp <- readRDS("data_use/prcp.rds")
+riv <- readRDS("data_use/river_height.rds")
+nino <- readRDS("data_use/nino.rds")
 
 data.lepto <- df.lepto %>% 
   left_join(pop) %>% 
@@ -44,4 +54,6 @@ pred.models(data=df.sf,
             lags=c(0,2,3,1), 
             fileName="sf_preds")
 
-# END
+## ############################################################################
+## END
+## ############################################################################
