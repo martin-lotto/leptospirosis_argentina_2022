@@ -9,6 +9,7 @@
 ##
 ## Script author: 
 ## - Martín Lotto Batista, ORCID: 0000-0002-9437-5270
+## - Eleanor Rees, ORCID: 0000-0002-4993-2795
 ##
 ## Contact: martin.lotto@bsc.es
 ## 
@@ -18,9 +19,7 @@
 pacman::p_load("ggthemes", "tidyverse", "zoo", 
                "sf", "ggspatial", "pROC")
 
-################################################################################
-## DATA
-################################################################################
+# Prepare data
 df.lepto <- readRDS("data_use/prov_cases.rds")
 pop <- readRDS("data_use/pop.rds")
 
@@ -38,9 +37,6 @@ er.preds <- readRDS("model_out/er_preds.rds")
 sf.preds <- readRDS("model_out/sf_preds.rds")
 #####
 
-################################################################################
-## MAIN TEXT
-################################################################################
 # Figure 2a: map ####
 # Shapefiles
 # South America's contour
@@ -223,13 +219,6 @@ sf <- sf.enso.fit$fits[[2]] %>%
         strip.text=element_text(size=14, face="bold"),
         plot.margin=unit(c(1,1,0,0), "cm"))
 
-leg <- cowplot::get_legend(er+geom_line(data=df.er, aes(date, cases), 
-                                        col="grey80", size=0.7) +
-                              scale_color_manual(values=c("Observed"="grey80")) +
-                              theme(legend.position="bottom",
-                                    legend.text=element_text(size=12, 
-                                                             face="italic")))
-
 fig3 <- cowplot::plot_grid(er, sf, nrow=2, labels=c("a.", "b."))
 
 ggsave(plot=fig3, filename="figures/figure3.pdf", width=18, height=10)
@@ -265,8 +254,7 @@ er <- ggroc(list(`Random effects only`=er.preds$roc[[1]],
         strip.background=element_rect(fill="white", color="white"),
         panel.grid.major=element_blank(),
         panel.grid.minor=element_blank(),
-        strip.text=element_text(size=14, face="bold"),
-        plot.margin=unit(c(1,1,0,0), "cm"))
+        strip.text=element_text(size=14, face="bold"))
 
 sf <- ggroc(list(`Random effects only`=sf.preds$roc[[1]], 
                  ENSO=sf.preds$roc[[3]], 
@@ -290,13 +278,12 @@ sf <- ggroc(list(`Random effects only`=sf.preds$roc[[1]],
         strip.background=element_rect(fill="white", color="white"),
         panel.grid.major=element_blank(),
         panel.grid.minor=element_blank(),
-        strip.text=element_text(size=14, face="bold"),
-        plot.margin=unit(c(1,1,0,0), "cm"))
+        strip.text=element_text(size=14, face="bold"))
 
 leg <- cowplot::get_legend(sf+theme(legend.position="bottom", 
                                     legend.direction="horizontal",
                                     legend.text=element_text(size=14, face="bold"),
-                                    legend.key.size=unit(2, "cm")))
+                                    legend.key.size=unit(1, "cm")))
 
 up <- cowplot::plot_grid(er, sf, nrow=1, labels=c("a.", "b."))
 fig4 <- cowplot::plot_grid(up, leg, nrow=2, rel_heights=c(1,0.1))
@@ -373,7 +360,7 @@ plot.out <- function(filt, text, max.rect=NA){
 pt1 <- plot.out("ENSO", "84%", 53)
 pt2 <- plot.out("Local climate", "89%", 68)
 
-fig5 <- cowplot::plot_grid(pt1, pt2, labels=c("a.", "b."))
+fig5 <- cowplot::plot_grid(pt1, pt2)
 ggsave(plot=fig5, filename="figures/figure5.pdf", width=18, height=7)
 
 # Table 1: goodness of fit statistics ####

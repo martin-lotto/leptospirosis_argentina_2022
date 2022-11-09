@@ -9,6 +9,7 @@
 ##
 ## Script author: 
 ## - Martín Lotto Batista, ORCID: 0000-0002-9437-5270
+## - Eleanor Rees, ORCID: 0000-0002-4993-2795
 ##
 ## Contact: martin.lotto@bsc.es
 ## 
@@ -18,9 +19,7 @@
 pacman::p_load("ggthemes", "tidyverse", "here", 
                "zoo", "sf", "ggspatial", "pROC")
 
-################################################################################
-## DATA
-################################################################################
+# Prepare data
 df.lepto <- readRDS("data_use/prov_cases.rds")
 pop <- readRDS("data_use/pop.rds")
 prcp <- readRDS("data_use/prcp.rds")
@@ -49,9 +48,6 @@ er.preds <- readRDS("model_out/er_preds.rds")
 sf.preds <- readRDS("model_out/sf_preds.rds")
 #####
 
-################################################################################
-## SUPPLEMENTARY TEXT
-################################################################################
 # Figure S1: times series of predictors ####
 p1 <- data.lepto %>%
   dplyr::select(date, prov, par.0) %>% 
@@ -59,123 +55,66 @@ p1 <- data.lepto %>%
   ggplot() +
   geom_line(aes(date, par.0, col=prov), size=1) +
   scale_x_date(date_breaks="1 year", date_labels="%Y") +
+  scale_y_continuous(breaks=c(1:6), labels=c(1:6)) +
   ggthemes::scale_colour_tableau("Color Blind") +
-  #  scale_color_manual(values=c("#67001f", "#c994c7")) +
   labs(x="", y="River height (m/month)", col="") +
   theme_bw() +
   theme(legend.position=c(0.9,0.9),
-        axis.title.y=element_text(size=10),
-        axis.line=element_line(size=0.7),
-        panel.border=element_blank())
+        legend.text=element_text(size=14, face="bold"),
+        axis.text=element_text(size=14, face="bold"),
+        axis.text.x=element_text(angle=45, hjust=1),
+        axis.title=element_text(size=16, face="bold"),
+        panel.border=element_blank(),
+        axis.line=element_line(color="black"),
+        panel.grid.major=element_blank(),
+        panel.grid.minor=element_blank())
 
 p2 <- data.lepto %>%
   dplyr::select(date, prov, prcp.0) %>% 
   ggplot() +
   geom_line(aes(date, prcp.0, col=prov), size=1) +
+  geom_hline(yintercept=0, col="grey", linetype="dashed") +
   scale_x_date(date_breaks="1 year", date_labels="%Y") +
   ggthemes::scale_colour_tableau("Color Blind") +
-  #  scale_color_manual(values=c("#67001f", "#c994c7")) +
   labs(x="", y="Precipitation (mm/month)", col="") +
-  theme_minimal() +
+  theme_bw() +
   theme(legend.position=c(0.9,0.9),
-        axis.title.y=element_text(size=10),
-        axis.line=element_line(size=0.7),
-        panel.border=element_blank())
+        legend.text=element_text(size=14, face="bold"),
+        axis.text=element_text(size=14, face="bold"),
+        axis.text.x=element_text(angle=45, hjust=1),
+        axis.title=element_text(size=16, face="bold"),
+        panel.border=element_blank(),
+        axis.line=element_line(color="black"),
+        panel.grid.major=element_blank(),
+        panel.grid.minor=element_blank())
 
-# Segment plot for Niño
-# p3 <- nino %>%
-#   mutate(date=as.Date(lubridate::make_date(year, month)),
-#          nino34.0=scale(nino34.0)[,1],
-#          mycolor=ifelse(nino34.0>0, "type1", "type2")) %>% 
-#   filter(year<2021) %>% 
-#   ggplot() +
-#   geom_segment(aes(x=date, y=0, xend=date, yend=nino34.0, color=mycolor)) +
-#   scale_color_manual(values=c("#67001f", "#c994c7")) +
-#   geom_hline(yintercept=0, alpha=0.2, linetype="dashed") +
-#   scale_x_date(date_breaks="1 year", date_labels="%Y") +
-#   labs(x="", y="Niño 3.4 Index", col="")+
-#   theme_minimal() +
-#   theme(legend.position="none",
-#         axis.title.y=element_text(size=10),
-#         axis.line=element_line(size=0.7),
-#         panel.border=element_blank())
-
-# Shaded plot for Niño
-# p3 <- nino %>% 
-#   mutate(date=as.Date(lubridate::make_date(year, month)),
-#          nino34.0=scale(nino34.0)[,1],
-#          nino=ifelse(nino34.0>=0, nino34.0,0),
-#          nina=ifelse(nino34.0<0, nino34.0,0),
-#          event=ifelse(nino34.0>=0.5, "niño", "niña")) %>% 
-#   select(date, nino34.0, nino, nina, event) %>% 
-#   ggplot(aes(x=date, y=nino34.0)) +
-#   geom_hline(yintercept=c(0.5, -0.5), linetype="dashed", col="grey") +
-#   geom_ribbon(aes(ymax=nino, ymin=0), fill="red", alpha=0.7) +
-#   geom_ribbon(aes(ymax=nina, ymin=0), fill="blue", alpha=0.7) +
-#   geom_line(size=.3) +
-#   scale_x_date(date_breaks="1 year", date_labels="%Y") +
-#   labs(x="", y="Niño 3.4 Index", col="")+
-#   theme_minimal() +
-#   theme(legend.position="none",
-#         axis.title.y=element_text(size=10),
-#         axis.line=element_line(size=0.7),
-#         panel.border=element_blank())
-
-# Attempt including a third category with neutral
-# rle <- rle(dt$event)
-# starts <- {ends <- cumsum(rle$lengths)} - rle$lengths + 1
-# groups <- mapply(seq, from=starts, to=ends+1, SIMPLIFY=FALSE)
-# dt2 <- dt[unlist(groups),]
-# dt2$event <- rep(rle$lengths, lengths(groups))
-# dt2$groups <- rep(seq_along(groups), lengths(groups))
-# dt2 <- head(dt2, -1)
-# 
-# dt2 %>% 
-#   ggplot(aes(date, nino34.0, group=groups)) +
-#   geom_line() +
-#   geom_ribbon(aes(ymin=0, ymax=nino34.0, fill=event), color=NA, alpha=.4)
-
-# ENSO with neutral band
-dt <- nino %>% 
+p3 <- nino %>%
   mutate(date=as.Date(lubridate::make_date(year, month)),
          nino34.0=scale(nino34.0)[,1],
-         nino=case_when(nino34.0<=0.5 ~ 0,
-                        nino34.0>=0 ~ nino34.0,
-                        TRUE ~ 0),
-         nina=ifelse(nino34.0< -0.5, nino34.0, 0),
-         event=ifelse(nino34.0>=0.5, "niño", "niña")) %>% 
-  select(date, nino34.0, nino, nina, event)
-
-new_scale <- function(new_aes) {
-  structure(ggplot2::standardise_aes_names(new_aes), class = "new_aes")
-}
-
-# Testing creating a plot with above or below 0.5/ -0.5 darker than the rest
-p3 <- dt %>%
-  ggplot(aes(x=date)) +
-  geom_hline(yintercept=0, col="grey", linetype="dashed") +
+         nino=ifelse(nino34.0>=0, nino34.0,0),
+         nina=ifelse(nino34.0<0, nino34.0,0),
+         event=ifelse(nino34.0>=0.5, "niño", "niña")) %>%
+  select(date, nino34.0, nino, nina, event) %>%
+  ggplot(aes(x=date, y=nino34.0)) +
   geom_hline(yintercept=c(0.5, -0.5), linetype="dashed", col="grey") +
-  ggh4x::stat_difference(aes(ymin = 0, ymax = nino34.0), alpha=0.2) +
-  scale_fill_manual(values=c("red", "blue")) +
-  new_scale_fill() +
-  ggh4x::stat_difference(aes(ymin = 0.5, ymax = nino34.0)) +
-  scale_fill_manual(values=c(alpha("red", 0.7), "NA")) +
-  new_scale_fill() +
-  ggh4x::stat_difference(aes(ymin = -0.5, ymax = nino34.0)) +
-  scale_fill_manual(values=c("NA", alpha("blue", 0.7))) +
-  geom_line(aes(y=nino34.0)) +
-  theme_bw() +
+  geom_ribbon(aes(ymax=nino, ymin=0), fill="red", alpha=0.7) +
+  geom_ribbon(aes(ymax=nina, ymin=0), fill="blue", alpha=0.7) +
+  geom_line(size=.3) +
   scale_x_date(date_breaks="1 year", date_labels="%Y") +
   labs(x="", y="Niño 3.4 Index", col="")+
-  theme_minimal() +
+  theme_bw() +
   theme(legend.position="none",
-        axis.title.y=element_text(size=10),
-        axis.line=element_line(size=0.7),
+        axis.text=element_text(size=14, face="bold"),
+        axis.text.x=element_text(angle=45, hjust=1),
+        axis.title=element_text(size=16, face="bold"),
         panel.border=element_blank(),
-        axis.text.x=element_text(angle=45, hjust=1))
+        axis.line=element_line(color="black"),
+        panel.grid.major=element_blank(),
+        panel.grid.minor=element_blank())
 
 s1 <- cowplot::plot_grid(p1, p2, p3, nrow=3)
 ggsave(plot=s1, filename=here("figures", "sup_figure1.pdf"), width=10, height=12)
+ggsave(plot=s1, filename=here("figures", "sup_figure1.jpeg"), width=10, height=12)
 
 # Figure S2: correlation matrix and variance inflation factor ####
 # Functions for calculating the variance inflation factor
@@ -214,110 +153,86 @@ myvif <- function(mod) {
   }
   invisible(result)
 }
-corvif <- function(dataz) {
-  dataz <- as.data.frame(dataz)
-  #correlation part
-  #  cat("Correlations of the variables\n\n")
-  tmp_cor <- cor(dataz,use="complete.obs")
-  #  print(tmp_cor)
-  
-  #vif part
-  form    <- formula(paste("fooy ~ ",paste(strsplit(names(dataz)," "),collapse=" + ")))
-  dataz   <- data.frame(fooy=1,dataz)
-  lm_mod  <- lm(form,dataz)
-  
-  # cat("\n\nVariance inflation factors\n\n")
-  print(myvif(lm_mod))
+
+# Variance Inflation Factor
+corvif <- function(dt) {
+  dt <- as.data.frame(dt)
+  # Correlation part
+  tmp_cor <- cor(dt,use="complete.obs")
+
+  # VIF part
+  form <- formula(paste("fooy ~ ", paste(strsplit(names(dt), " "),
+                                         collapse="+")))
+  dt <- data.frame(fooy=1,dt)
+  lm_mod <- lm(form,dt)
+
+  return(myvif(lm_mod))
 }
 
-# Entre Rios
-vars <- expand.grid(names(df.er[c(7,15,23)]),
-                    names(df.er[c(7,15,23)])) %>%
-  mutate(across(.cols=c(Var1, Var2), ~as.character(.x)))
+vars <- expand.grid(c("prcp", "par.0", "nino34.0"),
+                    c("prcp", "par.0", "nino34.0"))
 
-cors1 <- c()
-cors2 <- c()
+cors.er <- c()
+cors.sf <- c()
 for(i in 1:9){
-  cors1[i] <- energy::dcor(df.er[,vars$Var1[i]], df.er[,vars$Var2[i]])
-  cors2[i] <- cor(df.er[,vars$Var1[i]], df.er[,vars$Var2[i]])
-  print(i)
+  cors.er[i] <- cor(df.er[,vars[i,1]], df.er[,vars[i,2]])
+  cors.sf[i] <- cor(df.sf[,vars[i,1]], df.sf[,vars[i,2]])
 }
 
-cors.er <- vars %>%
-  mutate(dcor=round(cors1,2),
-         pcor=round(cors2,2))
+cors <- vars %>%
+  mutate(`Entre Ríos`=round(cors.er,2),
+         `Santa Fe`=round(cors.sf,2))
 
-vif.er <- corvif(df.er[,c(7,15,23)])
-
-# Santa Fe
-vars <- expand.grid(names(df.sf[c(7,15,23)]),
-                    names(df.sf[c(7,15,23)])) %>%
-  mutate(across(.cols=c(Var1, Var2), ~as.character(.x)))
-
-cors1 <- c()
-cors2 <- c()
-for(i in 1:9){
-  cors1[i] <- energy::dcor(df.sf[,vars$Var1[i]], df.sf[,vars$Var2[i]])
-  cors2[i] <- cor(df.sf[,vars$Var1[i]], df.sf[,vars$Var2[i]])
-}
-
-cors.sf <- vars %>%
-  mutate(dcor=round(cors1,2),
-         pcor=round(cors2,2))
-
-vif.sf <- corvif(df.sf[,c(7,29,23)])
+vif <- data.frame(var=c("Precipitation", "Paraná River", "Niño 3.4 Index"),
+                  er=corvif(df.er[,c("prcp", "par.0", "nino34.0")])[,1],
+                  sf=corvif(df.sf[,c("prcp", "par.0", "nino34.0")])[,1])
 
 # Create plots
-p1 <- cors.er %>%
-  mutate(Var1=str_replace_all(Var1, c("prcp"="Precipitation", "par.0"="Paraná River", 
-                                      "nino34.0"="Niño")),
-         Var2=str_replace_all(Var2, c("prcp"="Precipitation", "par.0"="Paraná River", 
-                                      "nino34.0"="Niño"))) %>% 
+p1 <- cors %>%
+  mutate(across(c(Var1,Var2), ~str_replace_all(.x, 
+                                               c("prcp"="Precipitation", 
+                                                 "par.0"="Paraná River",
+                                                 "nino34.0"="Niño 3.4 Index")))) %>%
+  pivot_longer(cols=3:4, names_to="prov", values_to="cors") %>% 
   ggplot(aes(Var1, Var2)) +
-  geom_tile(aes(fill=dcor)) +
-  geom_text(aes(label=dcor), size=7) +
-  scale_fill_gradient(low="white", high="red") +
-  labs(x="", y="", fill="", title="Entre Ríos") +
+  geom_tile(aes(fill=cors)) +
+  geom_text(aes(label=cors), size=7) +
+  scale_fill_gradient(low="white", high="#D55E00") +
+  facet_wrap(~prov) +
+  labs(x="", y="", fill="Correlation") +
+  guides(fill=guide_colorbar(title.position="right")) +
   theme_bw() +
-  theme(legend.position="none",
-        axis.text.x=element_text(angle=35, hjust=1),
-        title=element_text(size=12, face="bold"),
-        axis.text=element_text(size=12, face="bold"))
+  theme(legend.title=element_text(angle=-270, hjust=0.5, face="bold"),
+        axis.text=element_text(size=14, face="bold"),
+        axis.text.x=element_text(angle=45, hjust=1),
+        panel.border=element_blank(),
+        panel.grid.major=element_blank(),
+        panel.grid.minor=element_blank(),
+        strip.background=element_rect(fill="white", color="white"),
+        strip.text=element_text(size=14, face="bold"))
 
-p2 <- cors.sf %>%
-  mutate(Var1=str_replace_all(Var1, c("prcp"="Precipitation", "par.0"="Paraná River", 
-                                      "nino34.0"="Niño")),
-         Var2=str_replace_all(Var2, c("prcp"="Precipitation", "par.0"="Paraná River", 
-                                      "nino34.0"="Niño"))) %>% 
-  ggplot(aes(Var1, Var2)) +
-  geom_tile(aes(fill=dcor)) +
-  geom_text(aes(label=dcor), size=7) +
-  scale_fill_gradient(low="white", high="red") +
-  labs(x="", y="", fill="", title="Santa Fe") +
-  theme_bw() +
-  theme(legend.position="none",
-        axis.text.x=element_text(angle=35, hjust=1),
-        title=element_text(size=12, face="bold"),
-        axis.text=element_text(size=12, face="bold"))
-
-p3 <- vif.er %>% 
-  bind_rows(vif.sf) %>% 
-  mutate(prov=rep(c("Santa Fe", "Entre Ríos"), each=3)) %>% 
-  rownames_to_column("var") %>% 
-  mutate(var=c("Precipitation", "Paraná River", "ENSO", 
-               "Precipitation", "Paraná River", "ENSO")) %>% 
+p2 <- vif %>% 
+  pivot_longer(cols=2:3, names_to="prov", values_to="vif") %>% 
+  mutate(prov=str_replace_all(prov,
+                              c("er"="Entre Ríos",
+                                "sf"="Santa Fe"))) %>% 
   ggplot(aes(prov, var)) +
-  geom_tile(aes(fill=GVIF)) +
-  geom_text(aes(label=round(GVIF,2)), size=7) +
-  scale_fill_gradient(low="white", high="red") +
-  labs(x="", y="", fill="", title="GVIF") +
+  geom_tile(aes(fill=vif)) +
+  geom_text(aes(label=round(vif,2)), size=7) +
+  scale_fill_gradient(low="white", high="#D55E00") +
+  guides(fill=guide_colorbar(title.position="right")) +
+  labs(x="", y="", fill="VIF") +
   theme_bw() +
-  theme(legend.position="none",
-        axis.text.x=element_text(angle=35, hjust=1),
-        title=element_text(size=12, face="bold"),
-        axis.text=element_text(size=12, face="bold"))
+  theme(legend.title=element_text(angle=-270, hjust=0.5, face="bold"),
+        axis.text=element_text(size=14, face="bold"),
+        axis.text.x=element_text(angle=45, hjust=1),
+        panel.border=element_blank(),
+        panel.grid.major=element_blank(),
+        panel.grid.minor=element_blank())
 
-s2 <- cowplot::plot_grid(p1, p2, p3, nrow=1, labels=c("a.", "b.", "c."))
+s2 <- cowplot::plot_grid(p1, p2, nrow=1,
+                         labels=c("a.", "b."), rel_widths=c(1,0.5))
+
 ggsave(plot=s2, filename=here("figures", "sup_figure2.pdf"), width=18, height=6)
 
 # Figure S3: random effects ####
@@ -336,7 +251,14 @@ plot.res <- function(data, labs, ylab, pr, pos, dir){
     scale_x_continuous(breaks=c(1:length(labs)), labels=labs) +
     theme_bw() +
     theme(legend.position="none",
-          strip.background=element_rect(fill="white"))
+          legend.text=element_text(size=14, face="bold"),
+          axis.text=element_text(size=14, face="bold"),
+          axis.text.x=element_text(angle=45, hjust=1),
+          axis.title=element_text(size=16, face="bold"),
+          panel.border=element_blank(),
+          axis.line=element_line(color="black"),
+          panel.grid.major=element_blank(),
+          panel.grid.minor=element_blank())
 }
 
 er1 <- bind_rows(er.enso.fit$random[[2]]$month %>% mutate(mod="Random effects only"), 
@@ -365,7 +287,7 @@ up <- cowplot::plot_grid(p1, p2, nrow=1, labels=c("a.", "b."))
 down <- cowplot::plot_grid(p3, p4, nrow=1, labels=c("c.", "d."))
 
 s3 <- cowplot::plot_grid(up, down, leg, nrow=3, rel_heights=c(1,1,0.1))
-ggsave(plot=s3, filename=here("figures", "sup_figure3.pdf"), width=10, height=5)
+ggsave(plot=s3, filename=here("figures", "sup_figure3.pdf"), width=16, height=8)
 
 # Figure S4: effect sizes ####
 er <- bind_rows(er.enso.fit$params[[6]],
@@ -387,8 +309,15 @@ er <- bind_rows(er.enso.fit$params[[6]],
   labs(x="",
        y=expression("Exp (" ~beta[t]~ ")")) +
   theme_bw() +
-  theme(axis.text=element_text(size=12, face="bold"),
-        axis.title=element_text(size=12, face="bold"))
+  theme(legend.position="none",
+        legend.text=element_text(size=14, face="bold"),
+        axis.text=element_text(size=14, face="bold"),
+        axis.text.x=element_text(angle=45, hjust=1),
+        axis.title=element_text(size=16, face="bold"),
+        panel.border=element_blank(),
+        axis.line=element_line(color="black"),
+        panel.grid.major=element_blank(),
+        panel.grid.minor=element_blank())
 
 sf <- bind_rows(sf.enso.fit$params[[6]],
                 sf.clim.fit$params[[18]]) %>%
@@ -409,11 +338,18 @@ sf <- bind_rows(sf.enso.fit$params[[6]],
   labs(x="",
        y=expression("Exp (" ~beta[t]~ ")")) +
   theme_bw() +
-  theme(axis.text=element_text(size=12, face="bold"),
-        axis.title=element_text(size=12, face="bold"))
+  theme(legend.position="none",
+        legend.text=element_text(size=14, face="bold"),
+        axis.text=element_text(size=14, face="bold"),
+        axis.text.x=element_text(angle=45, hjust=1),
+        axis.title=element_text(size=16, face="bold"),
+        panel.border=element_blank(),
+        axis.line=element_line(color="black"),
+        panel.grid.major=element_blank(),
+        panel.grid.minor=element_blank())
 
 s4 <- cowplot::plot_grid(er, sf, labels=c("a.", "b."))
-ggsave(plot=s4, filename=here("figures", "sup_figure4.pdf"), width=8, height=3)
+ggsave(plot=s4, filename=here("figures", "sup_figure4.pdf"), width=12, height=5)
 
 # Figure S5: observed versus predicted ####
 # Create dfs for predicted values
@@ -446,11 +382,16 @@ er <- bind_rows(
   facet_wrap(~mod) +
   labs(y="", col="", fill="") +
   theme_bw() +
-  theme(axis.text.x=element_text(angle=45, hjust=1, size=11),
-        axis.text.y=element_text(size=12),
-        strip.background =element_rect(fill="white"),
-        strip.text=element_text(face="bold", size=12),
-        legend.position="none")
+  theme(axis.text=element_text(size=14, face="bold"),
+        axis.text.x=element_text(angle=45, hjust=1),
+        axis.title=element_text(size=16, face="bold"),
+        legend.position="none",
+        panel.border=element_blank(),
+        axis.line=element_line(color="black"),
+        strip.background=element_rect(fill="white", color="white"),
+        panel.grid.major=element_blank(),
+        panel.grid.minor=element_blank(),
+        strip.text=element_text(size=14, face="bold"))
 
 sf <- bind_rows(
   data.frame(
@@ -481,16 +422,30 @@ sf <- bind_rows(
   facet_wrap(~mod) +
   labs(y="", col="", fill="") +
   theme_bw() +
-  theme(axis.text.x=element_text(angle=45, hjust=1, size=11),
-        axis.text.y=element_text(size=12),
-        strip.background =element_rect(fill="white"),
-        strip.text=element_text(face="bold", size=12),
-        legend.position="none")
+  theme(axis.text=element_text(size=14, face="bold"),
+        axis.text.x=element_text(angle=45, hjust=1),
+        axis.title=element_text(size=16, face="bold"),
+        legend.position="none",
+        panel.border=element_blank(),
+        axis.line=element_line(color="black"),
+        strip.background=element_rect(fill="white", color="white"),
+        panel.grid.major=element_blank(),
+        panel.grid.minor=element_blank(),
+        strip.text=element_text(size=14, face="bold"))
 
 s5 <- cowplot::plot_grid(er, sf, nrow=2, labels=c("a.", "b."))
 ggsave(plot=s5, filename=here("figures", "sup_figure5.pdf"), width=18, height=10)
 
-
+# Table S1: incidence per 100,000 inhabitants ####
+data.lepto %>%
+  group_by(year, prov) %>% 
+  summarise(pop=unique(pop),
+            cases=sum(cases),
+            .groups="drop") %>%
+  mutate(rate=round((cases/pop)*100000, 2)) %>% 
+  dplyr::select(year, prov, rate) %>% 
+  pivot_wider(names_from=prov, values_from=rate)
+  
 # Table S2: predictive measures ####
 # AUC
 er.preds$sens.table %>% filter(model%in%c(1,3,5), condition=="Hit") %>% dplyr::select(model, auc)
