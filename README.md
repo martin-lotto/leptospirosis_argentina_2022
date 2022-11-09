@@ -1,1 +1,0 @@
-# leptospirosis_argentina_2022
