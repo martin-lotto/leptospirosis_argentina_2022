@@ -43,18 +43,22 @@ sf.preds <- readRDS("model_out/sf_preds.rds")
 ################################################################################
 # Figure 2a: map ####
 # Shapefiles
+# South America's contour
 sa <- readRDS("data_use/south_america_full.rds")
+bord <- sa %>% mutate(a=0) %>% group_by(a) %>% summarise(.groups="drop")
+# Provinces
 study.area <- readRDS("data_use/stafe_enrios.rds") %>%  
   group_by(NAME_1) %>% 
   summarise(.groups="drop")
-study.nmes <- cbind(study.area, st_coordinates(st_centroid(study.area$geometry)))
+# Province names
+study.nmes <- cbind(study.area, 
+                    st_coordinates(st_centroid(study.area$geometry)))
+# Paraná river
 map.riv <- readRDS("data_use/shp_riv.rds") %>% 
   filter(!grepl("Uru|Guale|Pla|Pal", fna)) %>% 
   st_crop(c(xmin=-60.80564,ymin=-34.22840,xmax=-57,ymax=-27.7))
 
 # South America with study area
-bord <- sa %>% mutate(a=0) %>% group_by(a) %>% summarise(.groups="drop")
-
 p1 <- ggplot() +
   # South America map
   geom_sf(data=sa, fill="#f7f4f9", color="white", lwd=0) +
@@ -94,11 +98,11 @@ p2 <- ggplot() +
   geom_point(data=stations, aes(x=long, y=lat),
              size=2, col="#980043", fill="#980043") +
   # Province names
-  geom_text(data=study.nmes, aes(x=X, y=Y, label=NAME_1), size=3,
+  geom_text(data=study.nmes, aes(x=X, y=Y, label=NAME_1), size=6,
             color="#d4b9da", fontface="bold", check_overlap=FALSE) +
   # River name
   ggrepel::geom_text_repel(data=par.r, aes(x=long, y=lat, label=riv), 
-                           nudge_x=1.2, nudge_y=0.5, size=3) +
+                           nudge_x=1.8, nudge_y=0.5, size=5, fontface="bold") +
   # Aesthetics
   theme_void() +
   theme(legend.position="none",
@@ -121,8 +125,6 @@ fig2a <- cowplot::ggdraw(p2) +
                      width=0.3,
                      height=0.3)
 
-ggsave(plot=fig2a, filename="figures/figure2a.pdf", width=7, height=6)
-
 # Figure 2b: time series ####
 fig2b <- data.lepto %>% 
   dplyr::select(1:6) %>% 
@@ -134,17 +136,17 @@ fig2b <- data.lepto %>%
   scale_x_date(date_breaks="1 year", date_labels="%Y") +
   facet_wrap(~prov, nrow=2, scales="free")+
   theme_bw() +
-  theme(axis.text=element_text(size=12),
+  theme(axis.text=element_text(size=14, face="bold"),
         axis.text.x=element_text(angle=45, hjust=1),
-        axis.title=element_text(size=12, face="bold"),
+        axis.title=element_text(size=16, face="bold"),
         legend.position="none",
         panel.border=element_blank(),
         axis.line=element_line(color="black"),
         strip.background=element_rect(fill="white", color="white"),
-        strip.text=element_text(size=12, face="italic"),
+        panel.grid.major=element_blank(),
+        panel.grid.minor=element_blank(),
+        strip.text=element_text(size=14, face="bold"),
         plot.margin=unit(c(1,1,0,0), "cm"))
-
-ggsave(plot=fig2b, filename="figures/figure2b.pdf", width=18, height=6)
 
 # Combine figure 1a with figure 1b
 fig2 <- cowplot::plot_grid(fig2a, NULL, fig2b, rel_widths=c(0.5,0.1,1), 
@@ -175,11 +177,17 @@ er <- er.enso.fit$fits[[2]] %>%
   facet_wrap(~mod) +
   labs(y="", col="", fill="") +
   theme_bw() +
-  theme(axis.text.x=element_text(angle=45, hjust=1, size=11),
-        axis.text.y=element_text(size=12),
-        strip.background =element_rect(fill="white"),
-        strip.text=element_text(face="bold", size=12),
-        legend.position="none")
+  theme(axis.text=element_text(size=14, face="bold"),
+        axis.text.x=element_text(angle=45, hjust=1),
+        axis.title=element_text(size=16, face="bold"),
+        legend.position="none",
+        panel.border=element_blank(),
+        axis.line=element_line(color="black"),
+        strip.background=element_rect(fill="white", color="white"),
+        panel.grid.major=element_blank(),
+        panel.grid.minor=element_blank(),
+        strip.text=element_text(size=14, face="bold"),
+        plot.margin=unit(c(1,1,0,0), "cm"))
 
 sf <- sf.enso.fit$fits[[2]] %>% 
   mutate(mod="Random effects only") %>% 
@@ -203,11 +211,17 @@ sf <- sf.enso.fit$fits[[2]] %>%
   facet_wrap(~mod) +
   labs(y="", col="", fill="") +
   theme_bw() +
-  theme(axis.text.x=element_text(angle=45, hjust=1, size=11),
-        axis.text.y=element_text(size=12),
-        strip.background =element_rect(fill="white"),
-        strip.text=element_text(face="bold", size=12),
-        legend.position="none")
+  theme(axis.text=element_text(size=14, face="bold"),
+        axis.text.x=element_text(angle=45, hjust=1),
+        axis.title=element_text(size=16, face="bold"),
+        legend.position="none",
+        panel.border=element_blank(),
+        axis.line=element_line(color="black"),
+        strip.background=element_rect(fill="white", color="white"),
+        panel.grid.major=element_blank(),
+        panel.grid.minor=element_blank(),
+        strip.text=element_text(size=14, face="bold"),
+        plot.margin=unit(c(1,1,0,0), "cm"))
 
 leg <- cowplot::get_legend(er+geom_line(data=df.er, aes(date, cases), 
                                         col="grey80", size=0.7) +
@@ -216,7 +230,7 @@ leg <- cowplot::get_legend(er+geom_line(data=df.er, aes(date, cases),
                                     legend.text=element_text(size=12, 
                                                              face="italic")))
 
-fig3 <- cowplot::plot_grid(er, sf, nrow=2, labels=c("a", "b"))
+fig3 <- cowplot::plot_grid(er, sf, nrow=2, labels=c("a.", "b."))
 
 ggsave(plot=fig3, filename="figures/figure3.pdf", width=18, height=10)
 
@@ -235,10 +249,24 @@ er <- ggroc(list(`Random effects only`=er.preds$roc[[1]],
   ggthemes::scale_color_tableau("Color Blind") +
   geom_segment(aes(x=1, xend=0, y=0, yend=1), color="darkgrey", linetype="dashed") +
   geom_point(data=trig.er, aes(x=specificity, y=sensitivity-c(0,0.02,0), col=mod), shape=1, size=5) +
-  geom_text(data=trig.er, aes(x=specificity+0.05, y=sensitivity+0.02, label=round(threshold, 2)), inherit.aes=FALSE) +
+  geom_text(data=trig.er, aes(x=specificity+c(0.05,-0.02,0.051), 
+                              y=sensitivity+c(0.02,0.04,0.02), 
+                              label=round(threshold, 2)), 
+            size=4,
+            inherit.aes=FALSE) +
   labs(x="1-Specificity", y="Sensitivity", col="") +
   theme_bw() +
-  theme(legend.position="none")
+  theme(axis.text=element_text(size=14, face="bold"),
+        axis.text.x=element_text(angle=45, hjust=1),
+        axis.title=element_text(size=16, face="bold"),
+        legend.position="none",
+        panel.border=element_blank(),
+        axis.line=element_line(color="black"),
+        strip.background=element_rect(fill="white", color="white"),
+        panel.grid.major=element_blank(),
+        panel.grid.minor=element_blank(),
+        strip.text=element_text(size=14, face="bold"),
+        plot.margin=unit(c(1,1,0,0), "cm"))
 
 sf <- ggroc(list(`Random effects only`=sf.preds$roc[[1]], 
                  ENSO=sf.preds$roc[[3]], 
@@ -246,16 +274,33 @@ sf <- ggroc(list(`Random effects only`=sf.preds$roc[[1]],
   ggthemes::scale_color_tableau("Color Blind") +
   geom_segment(aes(x=1, xend=0, y=0, yend=1), color="darkgrey", linetype="dashed") +
   geom_point(data=trig.sf, aes(x=specificity, y=sensitivity, col=mod), shape=1, size=5) +
-  geom_text(data=trig.sf, aes(x=specificity+0.05, y=sensitivity+0.02, label=round(threshold, 2)), inherit.aes=FALSE) +
-  labs(x="1-Specificity", y="", col="") +
+  geom_text(data=trig.sf, aes(x=specificity+c(-0.05,0.04,0.05), 
+                              y=sensitivity+c(-0.04,-0.045,0.02), 
+                              label=round(threshold, 2)), 
+            size=4,
+            inherit.aes=FALSE) +
+  labs(x="1-Specificity", y="Sensitivity", col="") +
   theme_bw() +
-  theme(legend.position="none")
+  theme(axis.text=element_text(size=14, face="bold"),
+        axis.text.x=element_text(angle=45, hjust=1),
+        axis.title=element_text(size=16, face="bold"),
+        legend.position="none",
+        panel.border=element_blank(),
+        axis.line=element_line(color="black"),
+        strip.background=element_rect(fill="white", color="white"),
+        panel.grid.major=element_blank(),
+        panel.grid.minor=element_blank(),
+        strip.text=element_text(size=14, face="bold"),
+        plot.margin=unit(c(1,1,0,0), "cm"))
 
-leg <- cowplot::get_legend(sf+theme(legend.position="bottom", legend.direction="horizontal"))
+leg <- cowplot::get_legend(sf+theme(legend.position="bottom", 
+                                    legend.direction="horizontal",
+                                    legend.text=element_text(size=14, face="bold"),
+                                    legend.key.size=unit(2, "cm")))
 
 up <- cowplot::plot_grid(er, sf, nrow=1, labels=c("a.", "b."))
 fig4 <- cowplot::plot_grid(up, leg, nrow=2, rel_heights=c(1,0.1))
-ggsave(plot=fig4, filename="figures/figure4.pdf", width=8, height=4)
+ggsave(plot=fig4, filename="figures/figure4.pdf", width=12, height=5)
 
 # Figure 5: Outbreak in 2010 ####
 # Compute outbreak probability for the period of interest
@@ -302,7 +347,7 @@ plot.out <- function(filt, text, max.rect=NA){
                               ymin=-0.5,
                               ymax=max.rect),
               aes(xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax),
-              fill=NA, col="grey50", size=0.5) +
+              fill=NA, col="grey20", size=1) +
     annotate(geom="text",
              x=as.Date("2010-07-01", format="%Y-%m-%d"),
              y=max.rect-5,
@@ -312,20 +357,24 @@ plot.out <- function(filt, text, max.rect=NA){
     ylim(-0.5, 68) +
     ggthemes::scale_colour_tableau("Color Blind") +
     ggthemes::scale_fill_tableau("Color Blind") +
-    labs(y="", col="", fill="") +
+    labs(y="Number of cases", col="", fill="") +
     theme_bw() +
-    theme(axis.text.x=element_text(angle=45, hjust=1, size=16, face="bold"),
-          axis.text.y=element_text(size=16, face="bold"),
-          strip.background =element_rect(fill="white"),
-          strip.text=element_text(face="bold", size=12),
-          legend.position="none")
+    theme(axis.text=element_text(size=16, face="bold"),
+          axis.text.x=element_text(angle=45, hjust=1),
+          axis.title=element_text(size=16, face="bold"),
+          legend.position="none",
+          panel.border=element_blank(),
+          axis.line=element_line(color="black"),
+          strip.background=element_rect(fill="white", color="white"),
+          panel.grid.major=element_blank(),
+          panel.grid.minor=element_blank())
 } 
 
 pt1 <- plot.out("ENSO", "84%", 53)
 pt2 <- plot.out("Local climate", "89%", 68)
 
 fig5 <- cowplot::plot_grid(pt1, pt2, labels=c("a.", "b."))
-ggsave(plot=fig5, filename="figures/figure5.pdf", width=18, height=10)
+ggsave(plot=fig5, filename="figures/figure5.pdf", width=18, height=7)
 
 # Table 1: goodness of fit statistics ####
 er.enso.fit$gof %>% slice(1,2,6) %>% dplyr::select(form, dic, rsq.re, rsq.null)
