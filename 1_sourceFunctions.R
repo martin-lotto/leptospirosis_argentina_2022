@@ -21,7 +21,7 @@
 suppressPackageStartupMessages({
   if (!require("pacman")) install.packages("pacman")
   pacman::p_load("dplyr", "tibble", "INLA", "hydroGOF", 
-                 "svMisc", "scoringutils", "pROC", "verification")
+                 "svMisc", "scoringutils", "pROC")
 })
 
 ################################################################################
@@ -296,9 +296,7 @@ pred.models <- function(data,
                crps=NULL,
                trigger=NULL,
                roc=NULL,
-               auc=NULL,
-               sens.table=NULL,
-               verif.stats=NULL)
+               auc=NULL)
   
   nmonths <- 144 # Total number of months
   s <- 1000 # Number of posterior samples
@@ -400,50 +398,6 @@ pred.models <- function(data,
       mutate(trigger=ifelse(prob.out>temp[["trigger"]][[j]][[1]], 1, 0),
              mod=j)
     
-    add3 <- data.frame(model=j,
-                       trigger=temp[["trigger"]][[j]][[1]],
-                       condition=c("Hit", "Correct rejection", 
-                                   "False alarm", "Missed event"),
-                       # Calculate hit rate
-                       value=c(length(add2$trigger[add2$trigger==1 & add2$outbreak==1]), 
-                               # Calculate correct rejection
-                               length(add2$trigger[add2$trigger==0 & add2$outbreak==0]), 
-                               # Calculate false alarm rate
-                               length(add2$trigger[add2$trigger==1 & add2$outbreak==0]), 
-                               # Calculate missed outbreaks
-                               length(add2$trigger[add2$trigger==0 & add2$outbreak==1])), 
-                       # Calculate true positive rate
-                       tp=length(add2$trigger[add2$trigger==1 & add2$outbreak==1])/ 
-                         length(add2$outbreak[add2$outbreak==1]), 
-                       # Calculate true negative rate
-                       tn=length(add2$trigger[add2$trigger==0 & add2$outbreak==0])/ 
-                         length(add2$outbreak[add2$outbreak==0]), 
-                       # Incorporate AUC values with 95% CI
-                       auc=temp[["auc"]][[j]]$auc,
-                       lower=temp[["auc"]][[j]]$lower,
-                       upper=temp[["auc"]][[j]]$upper) %>%
-      # Round all values
-      mutate(across(.cols=c(2,5:9), ~round(.x, 3)))
-    
-    temp[["sens.table"]] <- temp[["sens.table"]] %>% 
-      bind_rows(add3)
-    
-    # Verification statistics
-    mat <- matrix(c(add3[1,4], add3[4,4], add3[3,4], add3[2,4]),2,2)
-    ver1 <- verification::table.stats(mat, silent=TRUE)
-    ver2 <- verification::table.stats.boot(mat)
-    
-    add4 <- data.frame(mod=j,
-                       hit.rate=ver1$POD,
-                       hit.lower=ver2[2,1],
-                       hit.upper=ver2[1,1],
-                       far.rate=ver1$FAR,
-                       far.upper=ver2[1,2],
-                       far.lower=ver2[2,2])
-    
-    temp[["verif.stats"]] <- temp[["verif.stats"]] %>% 
-      bind_rows(add4)
-    
     saveRDS(temp, paste0("model_out/", paste0(fileName, "_", j, ".rds")))
     
     print(paste0("Model ", j, " of ", length(forms)))
@@ -455,10 +409,7 @@ pred.models <- function(data,
   #   ii) a list with the outbreak probabilities, where indexes match model IDs in 1.i)
   #   iii) a list with the CRPS values, where indexes match model IDs in 1.i)
   #   iv) a list with the outbreak trigger values, where indexes match model IDs in 1.i)
-  #   v) a data frame with the sensitivity values, where indexes match model IDs in 1.i)
-  #   vi) a data frame with the verification statistics, where indexes match model IDs
-  # in 1.i)
-  
+
   saveRDS(temp, paste0("model_out/", paste0(fileName, ".rds")))
     
   print(paste0("Saved prediction outputs as a R serialized object in model_out/", 

@@ -446,14 +446,38 @@ data.lepto %>%
   dplyr::select(year, prov, rate) %>% 
   pivot_wider(names_from=prov, values_from=rate)
   
-# Table S2: predictive measures ####
-# AUC
-er.preds$sens.table %>% filter(model%in%c(1,3,5), condition=="Hit") %>% dplyr::select(model, auc)
-sf.preds$sens.table %>% filter(model%in%c(1,3,4), condition=="Hit") %>% dplyr::select(model, auc)
+# Tables S2 and S3: confusion matrix and measures of predictive ability ####
+data.er <- list(res=er.preds$outb.prob[[1]] %>% 
+                  mutate(out.pred=ifelse(prob.out>=er.preds$trigger[[1]]$threshold, 1, 0)),
+                enso=er.preds$outb.prob[[3]] %>% 
+                  mutate(out.pred=ifelse(prob.out>=er.preds$trigger[[3]]$threshold, 1, 0)),
+                local=er.preds$outb.prob[[5]] %>% 
+                  mutate(out.pred=ifelse(prob.out>=er.preds$trigger[[5]]$threshold, 1, 0)))
 
-# Hit and false alarm rates
-er.preds$verif.stats %>% filter(mod%in%c(1,3,5)) %>% dplyr::select(mod, hit.rate, far.rate)
-sf.preds$verif.stats %>% filter(mod%in%c(1,3,4)) %>% dplyr::select(mod, hit.rate, far.rate)
+conf.er <- NULL
+for(mod in c("res", "enso", "local")){
+  conf.er[[mod]] <- caret::confusionMatrix(data=factor(data.er[[mod]]$out.pred),
+                                           reference=factor(data.er[[mod]]$outbreak),
+                                           positive="1")
+}
+
+data.sf <- list(res=sf.preds$outb.prob[[1]] %>% 
+                  mutate(out.pred=ifelse(prob.out>=sf.preds$trigger[[1]]$threshold, 1, 0)),
+                enso=sf.preds$outb.prob[[3]] %>% 
+                  mutate(out.pred=ifelse(prob.out>=sf.preds$trigger[[3]]$threshold, 1, 0)),
+                local=sf.preds$outb.prob[[4]] %>% 
+                  mutate(out.pred=ifelse(prob.out>=sf.preds$trigger[[4]]$threshold, 1, 0)))
+
+conf.sf <- NULL
+for(mod in c("res", "enso", "local")){
+  conf.sf[[mod]] <- caret::confusionMatrix(data=factor(data.sf[[mod]]$out.pred),
+                                           reference=factor(data.sf[[mod]]$outbreak),
+                                           positive="1")
+}
+
+# AUC
+list(res=er.preds$auc[[1]], enso=er.preds$auc[[3]], local=er.preds$auc[[5]])
+list(res=sf.preds$auc[[1]], enso=sf.preds$auc[[3]], local=sf.preds$auc[[4]])
 
 # CRPS
 unlist(er.preds$crps)[c(1,3,5)]
