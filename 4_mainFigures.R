@@ -226,23 +226,36 @@ ggsave(plot=fig3, filename="figures/figure3.pdf", width=18, height=10)
 # Figure 4: ROC curves ####
 trig.er <- bind_rows(er.preds$trigger) %>% 
   slice(c(1,3,5)) %>% 
-  mutate(sensitivity=sensitivity+c(0,0.02,0),
-         mod=c("Random effects only", "ENSO", "Local climate"))
+  mutate(model=c("Monthly random effects", "ENSO", "Local climate"))
 trig.sf <- bind_rows(sf.preds$trigger) %>% 
   slice(c(1,3,4)) %>% 
-  mutate(mod=c("Random effects only", "ENSO", "Local climate"))
+  mutate(model=c("Monthly random effects", "ENSO", "Local climate"))
 
-er <- ggroc(list(`Random effects only`=er.preds$roc[[1]], 
-                 ENSO=er.preds$roc[[3]], 
-                 `Local climate`=er.preds$roc[[5]])) +
-  ggthemes::scale_color_tableau("Color Blind") +
-  geom_segment(aes(x=1, xend=0, y=0, yend=1), color="darkgrey", linetype="dashed") +
-  geom_point(data=trig.er, aes(x=specificity, y=sensitivity-c(0,0.02,0), col=mod), shape=1, size=5) +
-  geom_text(data=trig.er, aes(x=specificity+c(0.05,-0.02,0.051), 
-                              y=sensitivity+c(0.02,0.04,0.02), 
-                              label=round(threshold, 2)), 
+roc.er <- data.frame(model=rep(c("Monthly random effects", "ENSO", "Local climate"), 
+                               times=c(94,74,73)),
+                     sens=c(er.preds$roc[[1]]$sensitivities,
+                            er.preds$roc[[3]]$sensitivities,
+                            er.preds$roc[[5]]$sensitivities),
+                     spec=1-c(er.preds$roc[[1]]$specificities,
+                              er.preds$roc[[3]]$specificities,
+                              er.preds$roc[[5]]$specificities)) %>% 
+  arrange(sens)
+
+er <- roc.er %>% 
+    ggplot(aes(spec, sens, group=model, col=model)) +
+    geom_line() +
+    ggthemes::scale_color_tableau("Color Blind") +
+  geom_segment(aes(x=0, xend=1, y=0, yend=1), color="darkgrey", linetype="dashed") +
+  geom_point(data=trig.er, aes(x=1-specificity, y=sensitivity, col=model),
+             shape=1, size=5) +
+  geom_text(data=trig.er, aes(x=(1-specificity)+c(0.05,0.05,-0.05), 
+                              y=sensitivity+c(-0.05,-0.05,0.05), 
+                              label=round(threshold, 2),
+                              col=model), 
             size=4,
-            inherit.aes=FALSE) +
+            fontface="bold",
+            inherit.aes=FALSE,
+            show.legend=FALSE) +
   labs(x="1-Specificity", y="Sensitivity", col="") +
   theme_bw() +
   theme(axis.text=element_text(size=14, face="bold"),
@@ -256,18 +269,32 @@ er <- ggroc(list(`Random effects only`=er.preds$roc[[1]],
         panel.grid.minor=element_blank(),
         strip.text=element_text(size=14, face="bold"))
 
-sf <- ggroc(list(`Random effects only`=sf.preds$roc[[1]], 
-                 ENSO=sf.preds$roc[[3]], 
-                 `Local climate`=sf.preds$roc[[4]])) +
+roc.sf <- data.frame(model=rep(c("Monthly random effects", "ENSO", "Local climate"), 
+                               times=c(105,106,103)),
+                     sens=c(sf.preds$roc[[1]]$sensitivities,
+                            sf.preds$roc[[3]]$sensitivities,
+                            sf.preds$roc[[4]]$sensitivities),
+                     spec=1-c(sf.preds$roc[[1]]$specificities,
+                              sf.preds$roc[[3]]$specificities,
+                              sf.preds$roc[[4]]$specificities)) %>% 
+  arrange(sens)
+
+sf <- roc.sf %>% 
+  ggplot(aes(spec, sens, group=model, col=model)) +
+  geom_line() +
   ggthemes::scale_color_tableau("Color Blind") +
-  geom_segment(aes(x=1, xend=0, y=0, yend=1), color="darkgrey", linetype="dashed") +
-  geom_point(data=trig.sf, aes(x=specificity, y=sensitivity, col=mod), shape=1, size=5) +
-  geom_text(data=trig.sf, aes(x=specificity+c(-0.05,0.04,0.05), 
-                              y=sensitivity+c(-0.04,-0.045,0.02), 
-                              label=round(threshold, 2)), 
-            size=4,
-            inherit.aes=FALSE) +
+  geom_segment(aes(x=0, xend=1, y=0, yend=1), color="darkgrey", linetype="dashed") +
+  geom_point(data=trig.sf, aes(x=1-specificity, y=sensitivity, col=model), shape=1, size=5) +
+    geom_text(data=trig.sf, aes(x=(1-specificity)+c(0.05,0.04,-0.04), 
+                                y=sensitivity+c(-0.05,-0.045,0.05), 
+                                label=round(threshold, 2),
+                                col=model), 
+              size=4,
+              fontface="bold",
+              inherit.aes=FALSE,
+              show.legend=FALSE) +
   labs(x="1-Specificity", y="Sensitivity", col="") +
+    
   theme_bw() +
   theme(axis.text=element_text(size=14, face="bold"),
         axis.text.x=element_text(angle=45, hjust=1),
