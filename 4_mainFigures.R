@@ -256,7 +256,7 @@ er <- roc.er %>%
             fontface="bold",
             inherit.aes=FALSE,
             show.legend=FALSE) +
-  labs(x="1-Specificity", y="Sensitivity", col="") +
+  labs(x="FAR", y="HR", col="") +
   theme_bw() +
   theme(axis.text=element_text(size=14, face="bold"),
         axis.text.x=element_text(angle=45, hjust=1),
@@ -293,7 +293,7 @@ sf <- roc.sf %>%
               fontface="bold",
               inherit.aes=FALSE,
               show.legend=FALSE) +
-  labs(x="1-Specificity", y="Sensitivity", col="") +
+  labs(x="FAR", y="HR", col="") +
     
   theme_bw() +
   theme(axis.text=element_text(size=14, face="bold"),
