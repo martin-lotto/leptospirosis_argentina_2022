@@ -16,14 +16,14 @@
 ## License: 
 ##
 ## ############################################################################
-source("1_functions.R")
+source("1_sourceFunctions.R")
 
 # Prepare data
-df.lepto <- readRDS("data_use/prov_cases.rds")
-pop <- readRDS("data_use/pop.rds")
-prcp <- readRDS("data_use/prcp.rds")
-riv <- readRDS("data_use/river_height.rds")
-nino <- readRDS("data_use/nino.rds")
+df.lepto <- read.csv("data_use/prov_cases.csv")
+pop <- read.csv("data_use/pop.csv")
+prcp <- read.csv("data_use/prcp.csv")
+riv <- read.csv("data_use/river_height.csv")
+nino <- read.csv("data_use/nino.csv")
 
 data.lepto <- df.lepto %>% 
   left_join(pop) %>% 

@@ -20,8 +20,8 @@ pacman::p_load("ggthemes", "tidyverse", "zoo",
                "sf", "ggspatial", "pROC")
 
 # Prepare data
-df.lepto <- readRDS("data_use/prov_cases.rds")
-pop <- readRDS("data_use/pop.rds")
+df.lepto <- read.csv("data_use/prov_cases.csv")
+pop <- read.csv("data_use/pop.csv")
 
 data.lepto <- df.lepto %>% 
   left_join(pop)
