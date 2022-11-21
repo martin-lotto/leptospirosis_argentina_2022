@@ -13,6 +13,7 @@ Leptospirosis is a zoonotic disease that occurs in almost all parts of the world
 
 This study aims to better characterise the effect of hydrometeorological variables on leptospirosis cases in Santa Fe and Entre Ríos, two provinces in North-Eastern Argentina. Additionally, this study aims to establish a set of predictive models with the potential of becoming part of an early warning system, based on readily available climate data, such as climate records from national meteorological services and measurements from sea surface temperature in the Pacific Ocean.
 
+In this repository, readers will find the scripts necessary for recreating the analysis in the [paper](link). Source data are available upon request to Dr. Gabriela Muller [(email)](email). 
 ## Content
 
 * [1. sourceFunctions](1_sourceFunctions.R): install packages and create functions for running models
@@ -23,5 +24,5 @@ This study aims to better characterise the effect of hydrometeorological variabl
     
 ## Authors
 ##### - Martín Lotto Batista, MSc [(ORCID)](https://orcid.org/0000-0002-9437-5270)
-##### - Eleanor M. Rees, PhD [(ORCID)](0000-0002-4993-2795)
+##### - Eleanor M. Rees, PhD [(ORCID)](https://orcid.org/0000-0002-4993-2795)
 ##### Contact: martin.lotto@bsc.es
