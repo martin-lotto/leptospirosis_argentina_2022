@@ -17,7 +17,7 @@
 ##
 ## ############################################################################
 pacman::p_load("ggthemes", "tidyverse", "zoo", 
-               "sf", "ggspatial", "pROC")
+               "sf", "ggspatial", "pROC", "lubridate")
 
 # Prepare data
 df.lepto <- read.csv("data_use/prov_cases.csv")
@@ -340,7 +340,7 @@ dt <- bind_rows(
     upper=matrixStats::rowQuantiles(er.preds$post.samples[[5]], cols=c(1:1000), probs=0.975),
     threshold=er.preds$outb.prob[[5]]$thresh,
     mod="Local climate")) %>%
-  bind_cols(date=rep(df.er$date, 2)) %>%
+  bind_cols(date=as.Date(rep(df.er$date, 2)), format="%Y-%m-%d") %>%
   mutate(mod=factor(mod, levels=c("ENSO","Local climate")))
 
 plot.out <- function(filt, text, max.rect=NA){
@@ -365,7 +365,7 @@ plot.out <- function(filt, text, max.rect=NA){
     annotate(geom="text",
              x=as.Date("2010-07-01", format="%Y-%m-%d"),
              y=max.rect-5,
-             label=paste0("Outbreak Prob:", text),
+             label=paste0("Prob(Outbreak):", text),
              hjust=0,
              size=8) +
     ylim(-0.5, 68) +
@@ -384,8 +384,8 @@ plot.out <- function(filt, text, max.rect=NA){
           panel.grid.minor=element_blank())
 } 
 
-pt1 <- plot.out("ENSO", "84%", 53)
-pt2 <- plot.out("Local climate", "89%", 68)
+pt1 <- plot.out("ENSO", " 84%", 53)
+pt2 <- plot.out("Local climate", " 89%", 68)
 
 fig5 <- cowplot::plot_grid(pt1, pt2)
 ggsave(plot=fig5, filename="figures/figure5.pdf", width=18, height=7)
