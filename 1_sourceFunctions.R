@@ -21,12 +21,25 @@
 suppressPackageStartupMessages({
   if (!require("pacman")) install.packages("pacman")
   pacman::p_load("dplyr", "tibble", "INLA", "hydroGOF", 
-                 "svMisc", "scoringutils", "pROC")
+                 "svMisc", "scoringutils", "pROC",
+                 "inlatools")
 })
 
 ################################################################################
 # FITTING MODELS
 ################################################################################
+run.mod <- function(form, fam, data){
+  mod <- INLA::inla(as.formula(form), 
+                    family=fam, 
+                    offset=log(pop/100000),
+                    control.inla=list(strategy='adaptive'),
+                    control.compute=list(dic=TRUE, cpo=TRUE, config=TRUE),
+                    control.predictor=list(link=1, compute=TRUE),
+                    verbose=FALSE,
+                    data=data)
+  return(mod)
+}
+
 fit.models <- function(data,
                        var1="", var2="", var3="", var4="",
                        fileName=""){

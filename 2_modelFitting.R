@@ -35,11 +35,62 @@ data.lepto <- df.lepto %>%
          ID.month=rep(seq(1:144), 2))
 
 dfs <- list(
-  df.er <- data.lepto %>% filter(prov == "Entre Ríos") %>% 
+  df.er=data.lepto %>% filter(prov == "Entre Ríos") %>% 
     mutate(across(.cols=c(7:35), ~(.x-mean(.x))/sd(.x))),
-  df.sf <- data.lepto %>% filter(prov == "Santa Fe") %>% 
+  df.sf=data.lepto %>% filter(prov == "Santa Fe") %>% 
     mutate(across(.cols=c(7:35), ~(.x-mean(.x))/sd(.x)))
 )
+
+## ############################################################################
+## Distribution check: Poisson vs Negative Binomial
+res <- "cases~1+f(month, model='rw2', cyclic=TRUE)+f(ID.year, model='iid')"
+
+## POISSON
+check <- NULL
+for(df in names(dfs)){
+  check[["mod"]][[df]] <- run.mod(res, "poisson", dfs[[df]])
+  check[["distribution"]][[df]] <- fast_distribution_check(check$mod[[df]])
+  check[["dispersion"]][[df]] <- dispersion_check(check$mod[[df]])
+}
+
+# Check DIC
+check$mod$df.er$dic$dic
+check$mod$df.sf$dic$dic
+
+# Check distribution
+plot(check$distribution$df.er) # Fits distribution
+plot(check$distribution$df.sf) # Fits distribution
+
+# Check dispersion
+plot(check$dispersion$df.er) # High over-dispersion
+plot(check$dispersion$df.sf) # High over-dispersion
+
+## NEGATIVE BINOMIAL
+check <- NULL
+for(df in names(dfs)){
+  check[["mod"]][[df]] <- run.mod(res, "nbinomial", dfs[[df]])
+  check[["distribution"]][[df]] <- fast_distribution_check(check$mod[[df]])
+  check[["dispersion"]][[df]] <- dispersion_check(check$mod[[df]])
+}
+
+# Check DIC
+check$mod$df.er$dic$dic
+check$mod$df.sf$dic$dic
+
+# Check distribution
+plot(check$distribution$df.er) # Fits distribution
+plot(check$distribution$df.sf) # Fits distribution
+
+# Check dispersion
+plot(check$dispersion$df.er) # A bit of underdispersion
+plot(check$dispersion$df.sf) # No over- underdispersion
+
+# Check overdispersion parameter
+check$mod$df.er$summary.hyperpar[1,c(1:5)] # >0 and CIs don't include the null
+check$mod$df.sf$summary.hyperpar[1,c(1:5)] # >0 and CIs don't include the null
+
+## ############################################################################
+## Model fitting
 
 # ENSO
 enso <- c("","+nino34.0","+nino34.1","+nino34.2","+nino34.3","+nino34.4",
