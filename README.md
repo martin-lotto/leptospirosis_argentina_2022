@@ -25,5 +25,5 @@ In this repository, readers will find the scripts necessary for recreating the a
 ## Authors
 ##### - Martín Lotto Batista, MSc [(ORCID)](https://orcid.org/0000-0002-9437-5270)
 ##### - Eleanor M. Rees, PhD [(ORCID)](https://orcid.org/0000-0002-4993-2795)
-##### - Rachel Lowe, ORCID: 0000-0003-3939-7343
+##### - Prof. Rachel Lowe [(ORCID)](https://orcid.org/0000-0003-3939-7343)
 ##### Contact: martin.lotto@bsc.es
