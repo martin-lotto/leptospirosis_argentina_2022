@@ -10,6 +10,7 @@
 ## Script author: 
 ## - Martín Lotto Batista, ORCID: 0000-0002-9437-5270
 ## - Eleanor Rees, ORCID: 0000-0002-4993-2795
+## - Rachel Lowe, ORCID: 0000-0003-3939-7343
 ##
 ## Contact: martin.lotto@bsc.es
 ## 
